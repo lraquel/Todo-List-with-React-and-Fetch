@@ -12,7 +12,7 @@ const Home = () => {
 
 	/*acá creo el usuario*/
 	const newUser = () => {
-		fetch('http://assets.breatheco.de/apis/fake/todos/user/Lraquelr6', {
+		fetch('https://assets.breatheco.de/apis/fake/todos/user/Lraquelr6', {
 			method: "POST",
 			headers: { 
 				"Content-Type" : "application/json",
@@ -20,50 +20,63 @@ const Home = () => {
 			body: JSON.stringify([]),
 		})
 		.then((res) => res.json())
-		.then((data) => setList(data))
+		.then((data) => getTask())
 		.catch((error) => console.log(error));
 	};
 
+	
+	
 	/*obtengo las tareas*/
 	const getTask = () => {
-		fetch('http://assets.breatheco.de/apis/fake/todos/user/Lraquelr6')
-		.then((res) => res.json())
-		.then((data) => console.log(data))
-		.catch((error) => console.log(error));
+		fetch('https://assets.breatheco.de/apis/fake/todos/user/Lraquelr6')
+		.then((res) => {
+           if (res.status == 404) newUser()
+			return (res.json())
+
+		})
+		.then((data) => {
+			console.log(data, "data");
+			setList(data)
+		})
+		.catch((error) => {
+			console.log(error); 
+			newUser()
+		});
 	};
 
 	/*actualizo tareas*/
 	const actualizarTasks = (tasks) => {
-		fetch('http://assets.breatheco.de/apis/fake/todos/user/Lraquelr6', {
+		fetch('https://assets.breatheco.de/apis/fake/todos/user/Lraquelr6', {
 			method: "PUT",
 			headers: { 
 				"Content-Type" : "application/json",
 			},
-			body: JSON.stringify([tasks]),
+			body: JSON.stringify(tasks),
 		})
 		.then((res) => res.json())
-		.then((data) => setList(data))
+		.then((data) => console.log(data))
 		.catch((error) => console.log(error));
 
 	};
 
 	/*elimino tareas*/ 
 	const eliminar = () => {
+		console.log("eliminar");
 		setList([]);
-		fetch('http://assets.breatheco.de/apis/fake/todos/user/Lraquelr6', {
-			method: "PUT",
+		fetch('https://assets.breatheco.de/apis/fake/todos/user/Lraquelr6', {
+			method: "DELETE",
 			headers: { 
 				"Content-Type" : "application/json",
-			},
-			body: JSON.stringify([]),
+			}
 		})
 		.then((res) => res.json())
-		.then((data) => setList(data))
+		.then((data) => console.log(data))
 		.catch((error) => console.log(error));
 
 	};
 
 	useEffect( () => {
+		/*newUser()
 		/*traigo lista de tareas*/ 
 		getTask();
 	}, []);
@@ -90,9 +103,11 @@ const Home = () => {
 					   value={inputValue}
 					   onKeyDown={(e) => {
 						if (e.key === "Enter"){
-							setList(list.concat({label: inputValue, done: false}));
+							if(list.length > 0 ) {setList(list.concat({label: inputValue, done: false}));
 							SetInputValue("");
-							actualizarTasks(list.concat({label: inputValue, done: false}));
+							actualizarTasks(list.concat({label: inputValue, done: false})) 
+						    }
+							
 						}
 					   }
 					   }
@@ -102,15 +117,21 @@ const Home = () => {
 
 			<div>
 				<ul>
-					{list.map((item,index)=> (
-						<li className="list-group-item d-flex justify-content-between mb-1 border border-light">
-						
-							  {item.label}
+					{list.length > 0 ? (
+						list.map((item,index)=> (
+							<li key={index} className="list-group-item d-flex justify-content-between mb-1 border border-light">
 							
-							<button className="btn btn-outline-info"
-							    onClick={ ()=> setList(list.filter((t,currentIndex)=> index !== currentIndex)) }><i class="fa fa-trash-alt"></i></button>
-						</li>
-					))}
+								  {item.label}
+								
+								<button className="btn btn-outline-info"
+									onClick={ ()=> {setList(list.filter((t,currentIndex)=> index !== currentIndex)); actualizarTasks(list.filter((t,currentIndex)=> index !== currentIndex)) }}><i class="fa fa-trash-alt"></i></button>
+							</li>
+						))
+					) : (
+						<p> No hay tareas, agregue nuevas tareas</p>
+					)
+				}
+					
 					
 				</ul>
 			</div>
